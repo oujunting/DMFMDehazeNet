@@ -12,10 +12,10 @@ import cv2
 def parse_args():
     modify_args()
     parser = argparse.ArgumentParser(description='Generation demo')
-    parser.add_argument('--config', default="../my_config/DMFMDehazeNet.py", help='test config file path')
+    parser.add_argument('--config', default="./my_config/DMFMDehazeNet.py", help='test config file path')
     parser.add_argument('--checkpoint', default="/home/featurize/work/DMFMDehazeNet/work_dirs/DMFMDehazeNet/iter_10.pth", help='checkpoint file')
     parser.add_argument('--img_path' ,help='path to input image file')
-    parser.add_argument('--save_path', default="../dehazing_datasets", help='path to save generation result')
+    parser.add_argument('--save_path', default="./dehazing_datasets", help='path to save generation result')
     parser.add_argument(
         '--path', default="/home/featurize/data/RESIDE-IN/test/hazy", help='path to unpaired image file')
     parser.add_argument(
