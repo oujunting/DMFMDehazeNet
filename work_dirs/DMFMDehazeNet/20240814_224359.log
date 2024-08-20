@@ -1,0 +1,219 @@
+2024-08-14 22:43:59,059 - mmedit - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.10 (default, Jun  4 2021, 14:48:32) [GCC 7.5.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce GTX 1080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.2, V11.2.152
+GCC: gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
+PyTorch: 1.10.0+cu113
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.2.3 (Git Hash 7336ca9f055cf1bfa13efb658fe15dc9b41f0740)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.2
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.2.0, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.10.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.11.1+cu113
+OpenCV: 4.5.4
+MMCV: 1.7.0
+MMCV Compiler: GCC 9.3
+MMCV CUDA Compiler: 11.3
+MMEditing: 0.16.0+
+------------------------------------------------------------
+
+2024-08-14 22:43:59,059 - mmedit - INFO - Distributed training: True
+2024-08-14 22:43:59,060 - mmedit - INFO - mmedit Version: 0.16.0
+2024-08-14 22:43:59,060 - mmedit - INFO - Config:
+/home/featurize/work/DMFMDehazeNet/my_config/DMFMDehazeNet.py
+# model settings
+
+model = dict(
+    type='Pix2PixHD',
+    render=True,
+    generator=dict(
+        type='MixDehazeNet',
+        att=True
+    ),
+    ssim_loss=dict(type='SSIMLoss', loss_weight=1.0),
+    pixel_loss=dict(type='MSELoss', loss_weight=1.0, reduction='mean'))
+# model training and testing settings
+train_cfg = dict(direction='a2b')  # model default: a2b
+test_cfg = dict(direction='a2b')
+
+# dataset settings
+train_dataset_type = 'BlemishDataset'
+val_dataset_type = 'BlemishDataset'
+img_norm_cfg = dict(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+train_pipeline = [
+    dict(
+        type='LoadBlemishPairedImage',
+        io_backend='disk',
+        key=['A', 'B'],
+        flag='color'),
+    dict(
+        type='Resize',
+        keys=['img_a', 'img_b'],
+        scale=(600, 600),
+        interpolation='bicubic'),
+    dict(type='FixedCrop', keys=['img_a', 'img_b'], crop_size=(512, 512)),
+    dict(type='Flip', keys=['img_a', 'img_b'], direction='horizontal'),
+    dict(type='RescaleToZeroOne', keys=['img_a', 'img_b']),
+    dict(
+        type='Normalize', keys=['img_a', 'img_b'], to_rgb=True,
+        **img_norm_cfg),
+    dict(type='ImageToTensor', keys=['img_a', 'img_b']),
+    dict(
+        type='Collect',
+        keys=['img_a', 'img_b'],
+        meta_keys=['img_a_path', 'img_b_path'])
+]
+test_pipeline = [
+    dict(
+        type='LoadBlemishPairedImage',
+        io_backend='disk',
+        key=['A', 'B'],
+        flag='color'),
+    dict(
+        type='Resize',
+        keys=['img_a', 'img_b'],
+        scale=(512, 512),
+        interpolation='bicubic'),
+    dict(type='RescaleToZeroOne', keys=['img_a', 'img_b']),
+    dict(
+        type='Normalize', keys=['img_a', 'img_b'], to_rgb=True,
+        **img_norm_cfg),
+    dict(type='ImageToTensor', keys=['img_a', 'img_b']),
+    dict(
+        type='Collect',
+        keys=['img_a', 'img_b'],
+        meta_keys=['img_a_path', 'img_b_path'])
+]
+data_root = '/home/featurize/data/RESIDE-IN/'
+data = dict(
+    samples_per_gpu=2,
+    workers_per_gpu=4,
+    train=dict(
+        type=train_dataset_type,
+        dataroot=[
+                  data_root + "train"
+        ],
+        root_name=dict(
+            A='hazy',
+            B='GT'
+        ),
+        pipeline=train_pipeline,
+        test_mode=False),
+    val=dict(
+        type=val_dataset_type,
+        dataroot=[
+            data_root + "test"
+        ],
+        root_name=dict(
+            A='hazy',
+            B='GT'
+        ),
+        pipeline=test_pipeline,
+        test_mode=True),
+    test=dict(
+        type=val_dataset_type,
+        dataroot=[
+            data_root + "test"
+        ],
+        root_name=dict(
+            A='hazy',
+            B='GT'
+        ),
+        pipeline=test_pipeline,
+        test_mode=True))
+
+# optimizer
+optimizers = dict(generator=dict(type='Adam', lr=2e-4, betas=(0.5, 0.999)))
+
+# learning policy
+lr_config = dict(policy='Fixed', by_epoch=False)
+
+# checkpoint saving
+checkpoint_config = dict(interval=2500, save_optimizer=True, by_epoch=False)
+evaluation = dict(interval=2500, save_image=False)
+log_config = dict(
+    interval=50,
+    hooks=[
+        dict(type='TextLoggerHook', by_epoch=False),
+        dict(type='TensorboardLoggerHook')
+    ])
+visual_config = None
+
+# runtime settings
+total_iters = 10
+cudnn_benchmark = False
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+work_dir = f'./work_dirs/{{ fileBasenameNoExtension }}'
+
+
+2024-08-14 22:43:59,060 - mmedit - INFO - Set random seed to 0, deterministic: False
+2024-08-14 22:44:03,011 - mmedit - INFO - Start running, host: featurize@featurize, work_dir: /home/featurize/work/DMFMDehazeNet/work_dirs/DMFMDehazeNet
+2024-08-14 22:44:03,012 - mmedit - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) FixedLrUpdaterHook                 
+(NORMAL      ) CheckpointHook                     
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) FixedLrUpdaterHook                 
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) FixedLrUpdaterHook                 
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) DistEvalIterHook                   
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+(VERY_LOW    ) TensorboardLoggerHook              
+ -------------------- 
+2024-08-14 22:44:03,012 - mmedit - INFO - workflow: [('train', 1)], max: 10 iters
+2024-08-14 22:44:03,012 - mmedit - INFO - Checkpoints will be saved to /home/featurize/work/DMFMDehazeNet/work_dirs/DMFMDehazeNet by HardDiskBackend.
+2024-08-14 22:44:07,373 - mmedit - INFO - Saving checkpoint at 10 iterations
