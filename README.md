@@ -4,7 +4,7 @@
 > Experimental results on the SOTS indoor data set show that the proposed method reaches 43.77dB in peak signal-to-noise ratio (PSNR), which is significantly better than the existing technology, further verifying the effectiveness and excellence of the method.
 
 ## Network Architecture
-![image](https://github.com/oujunting/DMFMDehazeNet/blob/main/%E4%BA%94%E5%85%AC%E5%BC%8F.png)
+![image](https://github.com/oujunting/DMFMDehazeNet/blob/main/frame.png)
 
 
 ## Getting started
