@@ -61,8 +61,8 @@ You can download our model from [Google Drive](https://drive.google.com/drive/fo
 
 Train the model on the `ITS` dataset using four cards
 ```
-cd  DMFMDehazeNet
-CUDA_VISIBLE_DEVICES=0,1,2,3 tools/dist_train.sh ./my_config/MixDehazeNet_all.py 4
+cd  DMFMDehazeNet 
+CUDA_VISIBLE_DEVICES=0,1,2,3 tools/dist_train.sh ./my_config/DMFMDehazeNet.py 4
 ```
 
 Generate images using pre-trained models
